@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useMemo } from 'react';
-import axios from 'axios';
+import { discordLogin } from '../../../services/auth.service';
+import useAuthStore from '@/store/auth.store';
+import { Navigate } from 'react-router-dom';
 
 const baseURL = 'http://localhost:5173';
 const loginURL = `${baseURL}/auth/login`;
@@ -10,7 +12,7 @@ const discordAuthLink = `https://discord.com/api/oauth2/authorize?client_id=1203
 `;
 
 function LoginPage() {
-  console.log('hash: ' + window.location.hash);
+  const setUser = useAuthStore((state) => state.setUser);
   const discordToken = useMemo(
     () => new URLSearchParams(window.location.href).get('access_token'),
     []
@@ -20,29 +22,18 @@ function LoginPage() {
     const handleFetchDiscordUser = async () => {
       if (!discordToken) return;
 
-      // const resp = await fetch('https://discord.com/api/users/@me', {
-      //   headers: {
-      //     authorization: `Bearer ${token}`,
-      //   },
-      // })
+      const resp = await discordLogin(discordToken);
 
-      // const data = await resp.json();
-      const resp = await axios.get('https://discord.com/api/users/@me', {
-        headers: {
-          authorization: `Bearer ${discordToken}`,
-        },
-      });
-
-      const discordUser = resp.data;
-      window.discordUser = discordUser;
-      console.log('discordUser:', discordUser);
+      setUser(resp.user);
     };
 
     handleFetchDiscordUser();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [discordToken]);
 
   if (discordToken) {
-    return <div>Discord Token {discordToken}</div>;
+    return <Navigate to="/dashboard" />;
   }
 
   return (

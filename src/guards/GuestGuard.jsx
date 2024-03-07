@@ -14,7 +14,7 @@ export default function GuestGuard({ children }) {
   const { isAuthenticated } = useAuthStore();
 
   const startGuardCheck = useCallback(() => {
-    if (isAuthenticated()) {
+    if (isAuthenticated) {
       router.replace(returnTo);
     }
   }, [isAuthenticated, returnTo, router]);

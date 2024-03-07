@@ -7,22 +7,41 @@ function authStoreReducer(set, get) {
   const initialState = {
     user: null,
     isLoading: true,
-    verificationRequired: false,
+    isAuthenticated: false,
   };
 
   return {
     ...initialState,
 
-    verify: async () => true,
+    setUser: (user) => {
+      set({
+        user,
+        isLoading: false,
+        isAuthenticated: !!user?._id,
+      });
 
-    isAuthenticated: () => get().status() === 'authenticated',
-
-    checkAuthenticated: () => {
-      return get().user ? 'authenticated' : 'unauthenticated';
+      localStorage.setItem('srDraft__auth__user', JSON.stringify(user));
+      return user;
     },
 
-    status: () => {
-      return get().isLoading ? 'isLoading' : get().checkAuthenticated();
+    verify: async () => {
+      const user = JSON.parse(localStorage.getItem('srDraft__auth__user'));
+
+      if (user?._id) {
+        set({
+          user,
+          isLoading: false,
+          isAuthenticated: true,
+        });
+      } else {
+        set({ isLoading: false, isAuthenticated: false });
+      }
+    },
+
+    logout: () => {
+      localStorage.removeItem('srDraft__auth__user');
+      set({ user: null, isLoading: false, isAuthenticated: false });
+      window.location.href = '/auth/login';
     },
   };
 }
